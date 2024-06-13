@@ -1,0 +1,149 @@
+<%- include('mail::message') %>
+
+<div style="background-color: #C6F6D5; color:#276749; height:50px; font-weight:500; border-radius:2px; padding-top:10px; text-align: center; margin-bottom: 25px;">
+    Pembayaran Berhasil
+</div>
+
+<% if (transaction.total > 0) { %>
+<div style="font-style: italic; font-weight:500; font-size: 1rem; color:#4A5568; margin-bottom: 10px">Hai, <%= transaction.nama %></div>
+Pesanan anda dengan nomor transaksi <b>#<%= transaction.invoice %></b> Sudah berhasil terbayar pada tanggal <%= transaction.transfer_date %>.<br>
+Metode pembayaran transfer ke <b><%= transaction.bank.type.nama %> <%= transaction.bank.nama_rekening %> <%= transaction.bank.nomor_rekening %></b><br><br>
+<% } %>
+
+<% if (transaction.total == 0) { %>
+<div style="font-style: italic; font-weight:500; font-size: 1rem; color:#4A5568; margin-bottom: 10px">Hai, <%= transaction.nama %></div>
+Pesanan anda dengan nomor invoice <b>#<%= transaction.invoice %></b> sudah berhasil dilakukan.
+<% } %>
+
+klik tombol dibawah untuk melihat status transaksi atau mencetak tiket
+
+<div style="display: block">
+    <%- include('mail::button', { url: `https://berbagi.link/${transaction.user.username}/event/transaction-detail/${transaction.id}/${transaction.token}` }) %> 
+   Lihat Transaksi
+    <%- include('mail::button-end') %>
+</div>
+
+<div style="display: block">
+    <%- include('mail::button', { url: `https://berbagi.link/${transaction.user.username}/event/tickets/${transaction.event.slug}/${bookingCode}`, color: 'success' }) %>
+   Lihat Tiket
+    <%- include('mail::button-end') %>
+</div>
+
+<% if ((transaction.user.username == "halalexpo" && transaction.event.id == "fe5e1278-a546-4caf-9598-731598714d7e") || (transaction.user.username == "demo" && transaction.event.id == "19972674-1b76-4b2f-b4bb-335388cd5cde")) { %>
+Gratis Voucher 100K
+Download disini: <a href="https://bagi.to/GiveawayVoucher100KBeardIndonesia">https://bagi.to/GiveawayVoucher100KBeardIndonesia</a>
+<% } %>
+
+<h2>Detail Pemesanan:</h2>
+<table style="color:#2D3748">
+    <tr style="height: 25px; font-weight: 500">
+        <td style="width: 150px">No. Invoice</td>
+        <td style="width: 20px">:</td>
+        <td>#<%= transaction.invoice %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Nama Event</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.nama_event %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Tanggal dan waktu</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.tanggal_start %> <%= transaction.event.waktu_start %> WIB - <%= transaction.event.tanggal_end %> <%= transaction.event.waktu_end %> WIB</td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Nama Tempat</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.nama_tempat %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Alamat</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.alamat %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Status pembayaran</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.status_pembayaran %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Tanggal Kadaluarsa</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.payment_expired_date %></td>
+    </tr>
+</table>
+<br>
+<h2>Detail Tiket</h2>
+<table style="width: 100%; margin-top:15px; border-spacing:0px">
+    <tr style="background-color: #4FD1C5; color:white; margin:0; font-weight:600">
+        <td style="padding-top:10px; padding-bottom:10px; padding-left:5px">Nama Tiket</td>
+        <td style="padding-top:10px; padding-bottom:10px; padding-left:5px">Harga</td>
+        <td style="padding-top:10px; padding-bottom:10px; padding-left:5px">Qty</td>
+        <td style="padding-top:10px; padding-bottom:10px; padding-left:5px">Total</td>
+    </tr>
+
+    <% tickets.forEach((item, index) => { %>
+        <% if (index % 2 === 0) { %>
+            <tr style="background-color:#f5f6f7">
+                <td style="padding:5px; border-bottom:1px;">
+                    <%= item.nama_tiket %>
+                </td>
+                <td style="padding:5px; border-bottom:1px;"><%= item.harga.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+                <td style="padding:5px; border-bottom:1px;"><%= item.jml.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+                <td style="padding:5px; border-bottom:1px;"><%= (item.jml * item.harga).toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+            </tr>
+        <% } else { %>
+            <tr>
+                <td style="padding:5px; border-bottom:1px;">
+                    <%= item.nama_tiket %>
+                </td>
+                <td style="padding:5px; border-bottom:1px;"><%= item.harga.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+                <td style="padding:5px; border-bottom:1px;"><%= item.jml.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+                <td style="padding:5px; border-bottom:1px;"><%= (item.jml * item.harga).toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+            </tr>
+        <% } %>
+    <% }) %>
+    <tr>
+        <td></td>
+        <td></td>
+        <td style="padding:5px; border-bottom:1px; font-weight: 500; text-align:right;">
+           Jumlah
+        </td>
+        <td style="padding:5px; border-bottom:1px; font-weight: 500"><%= transaction.total_harga_tiket.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+    </tr>
+</table>
+
+<br>
+<h2>Pembayaran</h2>
+<table style="margin-bottom:25px; color:#2D3748">
+    <tr>
+        <td>Total harga tiket</td>
+        <td style="width: 20px; padding-left:10px; padding-right:10px">:</td>
+        <td>Rp <%= transaction.total_harga_tiket.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+    </tr>
+    <tr>
+        <td>Kode unik</td>
+        <td style="width: 20px; padding-left:10px; padding-right:10px">:</td>
+        <td>Rp <%= transaction.kode_unik.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+    </tr>
+    <tr>
+        <td>Biaya Admin</td>
+        <td style="width: 20px; padding-left:10px; padding-right:10px">:</td>
+        <td>Rp <%= transaction.admin_fee.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+    </tr>
+    <tr>
+        <td>Diskon</td>
+        <td style="width: 20px; padding-left:10px; padding-right:10px">:</td>
+        <td>Rp <%= transaction.discount.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+    </tr>
+    <tr>
+        <td>Total</td>
+        <td style="width: 20px; padding-left:10px; padding-right:10px">:</td>
+        <td>Rp <%= transaction.total.toLocaleString('id-ID', { minimumFractionDigits: 0 }) %></td>
+    </tr>
+</table>
+
+Terima kasih.<br>
+<div style="color:#18B0B3; font-style: italic"><%= transaction.user.event_setting.nama_toko %></div>
+
+<%- include('mail::message-end') %>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; color: #2D3748; }
+        .italic { font-style: italic; font-weight: 500; font-size: 1rem; color: #4A5568; }
+        .table { width: 100%; margin-top: 15px; border-spacing: 0; }
+        .table th, .table td { padding: 5px; border-bottom: 1px solid #ddd; }
+        .table th { background-color: #4FD1C5; color: white; font-weight: 600; }
+        .button { padding: 5px 10px; border: none; background-color: #18B0B3; color: white; text-decoration: none; }
+        .row-even { background-color: #f5f6f7; }
+        .row-odd { background-color: white; }
+    </style>
+</head>
+<body>
+    <div class="italic">Hai, <%= transaction.nama %></div>
+    <p>Terima kasih, anda sudah memesan tiket <b><%= transaction.event.nama_event %></b></p>
+
+    <p>Silakan segera melakukan pembayaran di link berikut:</p>
+    <a target="_blank" href="https://berbagi.link/<%= transaction.user.username %>/event/checkout-detail/<%= transaction.id %>/<%= transaction.token %>">Cara Pembayaran</a>
+
+    <p>Setelah itu, silakan konfirmasikan pembayaran yang telah Anda lakukan di link berikut:</p>
+    <a target="_blank" href="https://berbagi.link/<%= transaction.user.username %>/event/konfirmasi-pembayaran/<%= transaction.id %>/<%= transaction.token %>">Konfirmasi Pembayaran</a>
+
+    <h2>Detail Pemesanan:</h2>
+    <table class="table">
+        <tr>
+            <td>No. Invoice</td>
+            <td>:</td>
+            <td>#<%= transaction.invoice %></td>
+        </tr>
+        <tr>
+            <td>Nama Event</td>
+            <td>:</td>
+            <td><%= transaction.event.nama_event %></td>
+        </tr>
+        <tr>
+            <td>Tanggal dan waktu</td>
+            <td>:</td>
+            <td><%= transaction.event.tanggal_start %> <%= transaction.event.waktu_start %> WIB - <%= transaction.event.tanggal_end %> <%= transaction.event.waktu_end %> WIB</td>
+        </tr>
+        <tr>
+            <td>Nama Tempat</td>
+            <td>:</td>
+            <td><%= transaction.event.nama_tempat %></td>
+        </tr>
+        <tr>
+            <td>Alamat</td>
+            <td>:</td>
+            <td><%= transaction.event.alamat %></td>
+        </tr>
+        <tr>
+            <td>Status pembayaran</td>
+            <td>:</td>
+            <td><%= transaction.status_pembayaran %></td>
+        </tr>
+        <tr>
+            <td>Tanggal Kadaluarsa</td>
+            <td>:</td>
+            <td><%= transaction.payment_expired_date %></td>
+        </tr>
+    </table>
+
+    <% if (qrCodeAvailable) { %>
+    <h2>QRCode Pembayaran</h2>
+    <img width="100%" height="100%" src="<%= transaction.qr_url %>"/>
+    <table class="table">
+        <tr>
+            <td colspan="2" style="text-align: center">
+                <a href="https://berbagi.link/api/event/transaction/download-qr/<%= transaction.id %>/<%= transaction.token %>" class="button">Download QR</a>
+            </td>
+        </tr>
+    </table>
+    <% } %>
+
+    <h2>Detail Tiket</h2>
+    <table class="table">
+        <tr>
+            <th>Nama Tiket</th>
+            <th>Harga</th>
+            <th>Qty</th>
+            <th>Total</th>
+        </tr>
+        <% tickets.forEach((item, index) => { %>
+            <tr class="<%= index % 2 === 0 ? 'row-even' : 'row-odd' %>">
+                <td><%= item.nama_tiket %></td>
+                <td><%= item.harga ? item.harga.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) : '-' %></td>
+                <td><%= item.jml ? item.jml.toLocaleString('id-ID') : '-' %></td>
+                <td><%= item.harga && item.jml ? (item.jml * item.harga).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) : '-' %></td>
+            </tr>
+        <% }); %>
+        <tr>
+            <td colspan="3" style="font-weight: 500;">Jumlah</td>
+            <td><%= transaction.total_harga_tiket ? transaction.total_harga_tiket.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) : '-' %></td>
+        </tr>
+    </table>
+
+    <h2>Pembayaran</h2>
+    <table class="table">
+        <tr>
+            <td>Total harga tiket</td>
+            <td>:</td>
+            <td><%= transaction.total_harga_tiket.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>
+        </tr>
+        <tr>
+            <td>Kode unik</td>
+            <td>:</td>
+            <td><%= transaction.kode_unik.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>
+        </tr>
+        <tr>
+            <td>Biaya Admin</td>
+            <td>:</td>
+            <td><%= transaction.admin_fee.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>
+        </tr>
+        <tr>
+            <td>Diskon</td>
+            <td>:</td>
+            <td><%= transaction.discount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>
+        </tr>
+        <tr>
+            <td>Total</td>
+            <td>:</td>
+            <td><%= transaction.total.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>
+        </tr>
+    </table>
+
+    <h2>Metode Pembayaran</h2>
+    <table class="table">
+        <tr>
+            <td><%= transaction.payment_method && transaction.payment_method.type ? transaction.payment_method.type.nama : '-' %></td>
+        </tr>
+        <% if (transaction.payment_method && (transaction.payment_method.payment_links || transaction.payment_method.nomor_rekening)) { %>
+        <tr>
+            <td>Kode Pembayaran</td>
+            <td>:</td>
+            <td><%= transaction.payment_method.payment_links || transaction.payment_method.nomor_rekening %></td>
+        </tr>
+        <% } %>
+    </table>
+</body>
+</html>

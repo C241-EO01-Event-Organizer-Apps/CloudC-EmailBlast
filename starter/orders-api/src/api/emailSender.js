@@ -9,6 +9,11 @@ const path = require('path');
 const app = express();
 app.use(bodyParser.json());
 
+
+// Ambil lokasi direktori saat ini
+const dir = path.resolve();
+// Bernavigasi ke direktori induk (parent directory)
+const parentDirectory = path.join(dir, '..');
 // Database connection
 const db = mysql.createConnection({
     host: 'localhost',
@@ -26,15 +31,20 @@ const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: process.env.MAIL_PORT,
     secure: false,
+    logger: true,
+    debug: true,
     auth: {
         user: process.env.MAIL_USERNAME,
         pass: process.env.MAIL_PASSWORD
+    },
+    tls:{
+        rejectUnauthorized: true
     }
 });
 
 const buildEmailTemplate = (transaction, tickets) => {
     const qrCodeAvailable = transaction.payment_method?.qr_code;
-    const invoiceTemplate = path.join(__dirname, 'views', 'tagihan.ejs');
+    const invoiceTemplate = path.join(parentDirectory, 'views', 'tagihan.ejs');
 
     return ejs.renderFile(invoiceTemplate, { transaction, tickets, qrCodeAvailable }, (err, data) => {
         if (err) {
@@ -63,4 +73,4 @@ const sendEmail = (transaction, tickets) => {
     });
 };
 
-module.exports = { sendEmail };
+module.exports = { sendEmail: sendEmail }
