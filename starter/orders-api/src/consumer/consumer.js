@@ -35,21 +35,34 @@ function isValidPhoneNumber(number) {
   }
 }
 
-// Update Transaction Record (Refactored using async/await)
-async function updateTransactionNotification(transactionId) {
+// Update Transaction Record
+async function updateTransactionNotification(transactionId, sendEmailResult, sendWAResult) {
   const connection = mysql.createConnection(dbConfig);
-  
-  try{
+
+  // Explicitly convert the value of sendEmailResult and sendWAResult to 0 or 1
+  const isNotifySuccess = sendEmailResult === 'Email sent' || sendWAResult === 'Message sent' ? 1 : 0;
+  const isNotifyEmail = sendEmailResult === 'Email sent' ? 1 : 0;
+  const isNotifyWA = sendWAResult === 'Message sent' ? 1 : 0;
+
+  try {
     await connection.connect();
-    const updateQuery = 'UPDATE event_transactions SET is_notify_success = 1 WHERE id = ?';
-    await connection.query(updateQuery, [transactionId]);
-  }catch(err){
+    const updateQuery =
+      "UPDATE event_transactions SET is_notify_success = ?, is_notify_email = ?, is_notify_wa = ? WHERE id = ?";
+    const updateValues = [isNotifySuccess, isNotifyEmail, isNotifyWA, transactionId];
+
+    // Log query before executing to debug
+    console.log("SQL Query:", updateQuery);
+    console.log("Values:", updateValues);
+
+    await connection.query(updateQuery, updateValues);
+  } catch (err) {
     console.error("Error updating transaction:", err);
-    // handle the error appropriately
-  }finally{
+    // Handle the error appropriately
+  } finally {
     connection.end();
   }
 }
+
 
 // Process Transaction Logic
 async function processTransaction(transaction, tickets) {
@@ -63,7 +76,6 @@ async function processTransaction(transaction, tickets) {
       if (validateEmail(transaction.email)) {
         try {
           sendEmailResult = await sendEmail(transaction, tickets);
-          console.log(sendEmailResult);
         } catch (error) {
           console.error("Error sending email:", error);
         }
@@ -73,22 +85,19 @@ async function processTransaction(transaction, tickets) {
       if (isValidPhoneNumber(phone_number)) {
         try {
           sendWAResult = await sendWhatsApp(transaction, tickets);
-          console.log(sendWAResult);
         } catch (error) {
           console.error("Error sending WhatsApp message:", error);
         }
       }
 
-      // Update Transaction Status
-      if (sendEmailResult === 'Email sent' && sendWAResult === 'Message sent') {
-        transaction.is_notify_success = 1;
-        await transaction.save(); // Assuming you have a way to save the transaction model
-      }
+      // Update Transaction Status in the Database
+      await updateTransactionNotification(transaction.id, sendEmailResult, sendWAResult); 
     }
   } catch (error) {
     console.error("Error processing transaction:", error);
     console.log(transaction);
-    // Consider re-queuing the message with a delay or logging for manual intervention.
+    // Re-queue Message (only if needed)
+    // channel.nack(msg); // Uncomment if you want to re-queue on error
   }
 }
 
@@ -114,8 +123,11 @@ async function consumeMessages() {
               await updateTransactionNotification(transaction.id); 
   
               await processPendingItems(); // Process pending items AFTER main transaction
-              channel.ack(msg);
+
             }
+            // Acknowledge the message after all processing is done
+            // channel.ack(msg); 
+             
           } catch (error) {
             console.error('Error processing message', error);
             // Consider re-queuing the message with a delay or logging for manual intervention

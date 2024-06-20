@@ -1,0 +1,126 @@
+<%- include('mail::message') %>
+<style>
+    /* Your existing styles... */
+    .even-row { background-color: #f5f6f7; }
+    .odd-row { background-color: white; }
+    /* ...additional styles you may have */
+  </style>
+
+<div style="background-color: #C6F6D5; color:#276749; height:50px; font-weight:500; border-radius:2px; padding-top:10px; text-align: center; margin-bottom: 25px;">
+    Pesanan Baru
+</div>
+
+<div style="font-style: italic;font-weight:500;font-size: 1rem;color:#4A5568">Hai, <%= transaction.user.name %></div>
+Anda mendapat pesanan baru dengan detail sebagai berikut
+
+## Detail Pemesanan:
+<table style="color:#2D3748">
+    <tr style="height: 25px;font-weight: 500">
+        <td style="width: 150px">No. Invoice</td>
+        <td style="width: 20px">:</td>
+        <td>#<%= transaction.invoice %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Nama Event</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.nama_event %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Tanggal dan waktu</td>
+        <td style="width: 20px">:</td>
+        <td> <%= transaction.event.tanggal_start %> <%= transaction.event.waktu_start %> WIB - <%= transaction.event.tanggal_end %> <%= transaction.event.waktu_end %> WIB</td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Nama Tempat</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.nama_tempat %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Alamat</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.event.alamat %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Status pembayaran</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.status_pembayaran %></td>
+    </tr>
+    <tr style="height: 25px">
+        <td style="width: 130px">Tanggal Kadaluarsa</td>
+        <td style="width: 20px">:</td>
+        <td><%= transaction.payment_expired_date %></td>
+    </tr>
+    <% if (transaction.catatan) { %>
+        <tr style="height: 25px">
+            <td style="width: 130px">Catatan</td>
+            <td style="width: 20px">:</td>
+            <td><%= transaction.catatan %></td>
+        </tr>
+    <% } %>
+</table>
+<br>
+
+## Detail Tiket
+<table style="width: 100%;margin-top:15px;border-spacing:0px">
+    <tr style="background-color: #4FD1C5;color:white;margin:0;font-weight:600">
+        <td style="padding-top:10px;padding-bottom:10px;padding-left:5px">Nama Tiket</td>
+        <td style="padding-top:10px;padding-bottom:10px;padding-left:5px">Harga</td>
+        <td style="padding-top:10px;padding-bottom:10px;padding-left:5px">Qty</td>
+        <td style="padding-top:10px;padding-bottom:10px;padding-left:5px">Total</td>
+    </tr>
+
+    <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+  <% tickets.forEach((item, index) => { %>
+    <tr class="<%= index % 2 === 0 ? 'even-row' : 'odd-row' %>">
+      <td style="padding: 8px; border-bottom: 1px solid #ddd;"><%= item.nama_tiket %></td>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd;"><%= item.harga.toLocaleString('id-ID') %></td>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd;"><%= item.jml.toLocaleString('id-ID') %></td>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd;"><%= (item.jml * item.harga).toLocaleString('id-ID') %></td>
+    </tr>
+  <% }) %>
+  
+</table>
+
+    <tr>
+        <td></td>
+        <td></td>
+        <td style="padding:5px;border-bottom:1px;font-weight: 500;align:right;">Jumlah</td>
+        <td style="padding:5px;border-bottom:1px;font-weight: 500"><%= transaction.total_harga_tiket.toLocaleString('id-ID') %></td> 
+    </tr>
+</table>
+
+<br>
+
+## Pembayaran
+<table style="margin-bottom:25px;color:#2D3748">
+    <tr>
+        <td>Total harga tiket</td>
+        <td style="width: 20px;padding-left:10px;padding-right:10px">:</td>
+        <td>Rp <%= transaction.total_harga_tiket.toLocaleString('id-ID') %></td> 
+    </tr>
+    <tr>
+        <td>Kode unik</td>
+        <td style="width: 20px;padding-left:10px;padding-right:10px">:</td>
+        <td>Rp <%= transaction.kode_unik.toLocaleString('id-ID') %></td> 
+    </tr>
+    <tr>
+        <td>Biaya Admin</td>
+        <td style="width: 20px;padding-left:10px;padding-right:10px">:</td>
+        <td>Rp <%= transaction.admin_fee.toLocaleString('id-ID') %></td> 
+    </tr>
+    <tr>
+        <td>Diskon</td>
+        <td style="width: 20px;padding-left:10px;padding-right:10px">:</td>
+        <td>Rp <%= transaction.discount.toLocaleString('id-ID') %></td> 
+    </tr>
+    <tr>
+        <td>Total</td>
+        <td style="width: 20px;padding-left:10px;padding-right:10px">:</td>
+        <td>Rp <%= transaction.total.toLocaleString('id-ID') %></td> 
+    </tr>
+</table>
+
+Terima kasih.<br>
+<div style="color:#18B0B3;font-style: italic"><%= transaction.user.event_setting.nama_toko %></div>
+
+<%- include('mail::endcomponent') %>
